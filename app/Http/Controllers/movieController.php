@@ -8,15 +8,27 @@ use Illuminate\Support\Facades\Input;
 
 class movieController extends Controller
 {
-    public function loadPopular()
+    public function loadPopular($page = 1)
     {
         $accessToken =
             "Bearer eyJhbGciOiJIUzI1NiJ9.eyJhdWQiOiI3MzU2ZjZjNzgxZjg0MjAyNjM2N2I4YmFhMjI1YWJkYiIsInN1YiI6IjY1MDFjOTdkNTU0NWNhMDBhYjVkYmRkOSIsInNjb3BlcyI6WyJhcGlfcmVhZCJdLCJ2ZXJzaW9uIjoxfQ.zvglGM1QgLDK33Dt6PpMK9jeAOrLNnxClZ6mkLeMgBE";
-        $url = "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc";
+        $url = "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page={$page}&sort_by=popularity.desc";
         $res = Http::withHeaders(["Authorization" => $accessToken])->get($url);
         $decode = json_decode($res->body(), false);
-        session(['data' => $decode->results]);
-        return view('test');
+
+        $movies = json_decode($res->body())->results;
+
+        // Pass the fetched data to the view
+        return view('test', [
+            'movies' => $movies,
+            'currentPage' => $page,  // Pass the current page to the view
+            'totalPages' => $this->getTotalPages($res),  // Use a helper method to get total pages
+        ]);
+    }
+
+    private function getTotalPages ($res)
+    {
+        return json_decode($res->body())->total_pages;
     }
 
     public function setupSearch($query)

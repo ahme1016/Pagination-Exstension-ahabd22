@@ -81,8 +81,6 @@
     </div>
 </body>
 <script>
-    console.log(<?php echo $user; ?>);
-    console.log("Hello");
     let comments = document.querySelector("#comments");
     let key = "<?php echo $key->results[0]->key; ?>";
     var backdrop = document.querySelector('#backdrop');
@@ -187,7 +185,7 @@
     }
 
     async function getUsername(userId) {
-        /*** 
+        /***
          * http call to endpoint querying database model User on userId getting the username
          * takes @String userId
          * return @String username
