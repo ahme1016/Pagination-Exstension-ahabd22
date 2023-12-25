@@ -4,229 +4,197 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Movie App</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/d826f0fb4b.js" crossorigin="anonymous"></script>
+    <style>
+        /* Add your CSS styles here */
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: "Poppins", sans-serif;
+            margin: 0;
+            background-color: #000;
+            color: white;
+            min-height: 100vh;
+            height: 100%;
+        }
+
+        main {
+            display: flex;
+            flex-wrap: wrap;
+        }
+
+        .movie {
+            background-color: #222;
+            border-radius: 3px;
+            box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
+            width: 300px;
+            margin: 1rem;
+            cursor: pointer; /* Add this to indicate clickable elements */
+        }
+
+        .movie img {
+            width: 100%;
+        }
+
+        .movie-info {
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 1rem 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .movie-info h3 {
+            margin: 0;
+        }
+
+        .movie-info span {
+            background-color: #222;
+            border-radius: 3px;
+            padding: 0.25rem 0.5rem;
+        }
+
+    </style>
 </head>
 
 <body>
-    @include('search')
-    <div id="innerbody">
-        <div id="title-div">
-            <h1>Popular movies</h1>
-            <?php if (session()->has('user')) {
-                $temp = session('user');
-                echo $temp->name;
-            }
-            ?>
-        </div>
-        <div id="searchPoster"></div>
-        <div id="poster-div">
-            <button id="left-arrow" style="visibility: hidden"><i class="fa-solid fa-chevron-left"></i></button>
-            <?php
-            $data = session('data');
-            $poster = session('poster');
-            if (isset($data)) {
-                for ($i = 0; $i < 6; $i++) {
-                    echo '<a class="redposter"><img class="redposterimg poster" src="https://image.tmdb.org/t/p/w500' . $data[$i]->poster_path . '"></a>';
-                }
-            }
-            ?>
-            <button id="right-arrow"><i class="fa-solid fa-chevron-right"></i></button>
-        </div>
-        <h1 id="watchlist-title">Your Watchlist</h1>
-        <div id="watchlist-div">
-
-        </div>
+@include('search')
+<div id="innerbody">
+    <div id="title-div">
+        <h1>Popular movies</h1>
+        @if (session()->has('user'))
+            {{ session('user')->name }}
+        @endif
     </div>
-    <script>
-        let counter = 0;
-        let data = <?php echo json_encode($data); ?>;
+    <div id="searchPoster"></div>
+    <main>
+        <!-- Movies will be appended here -->
+    </main>
+    <h1 id="watchlist-title">Your Watchlist</h1>
+    <div id="watchlist-div">
+        <!-- Watchlist content will be added here -->
+    </div>
+</div>
+<script>
+    const APIURL = "https://api.themoviedb.org/3/discover/movie?include_adult=false&include_video=false&language=en-US&page=1&sort_by=popularity.desc&api_key=7356f6c781f842026367b8baa225abdb&page=1";
+    const IMGPATH = "https://image.tmdb.org/t/p/w500";
 
-        let posterdiv = document.querySelectorAll('.redposterimg');
-        let rightarrow = document.querySelector('#right-arrow');
-        let leftarrow = document.querySelector('#left-arrow');
-        rightarrow.addEventListener('click', (event) => {
-            counter++;
-            posterdiv.forEach((element, i) => {
-                element.setAttribute('src', 'https://image.tmdb.org/t/p/w500' + data[i + counter]
-                    .poster_path);
-            })
-            if (counter > 4) rightarrow.style.visibility = "hidden";
-            else rightarrow.style.visibility = "visible";
-            if (counter > 0) leftarrow.style.visibility = "visible";
-            else leftarrow.style.visibility = "hidden";
-        })
+    const main = document.querySelector('main');
+    const watchlistDiv = document.querySelector('#watchlist-div');
 
-        leftarrow.addEventListener('click', (event) => {
-            counter--;
-            posterdiv.forEach((element, i) => {
-                element.setAttribute('src', 'https://image.tmdb.org/t/p/w500' + data[i + counter]
-                    .poster_path);
-            })
-            if (counter > 0) leftarrow.style.visibility = "visible";
-            else leftarrow.style.visibility = "hidden"
-            if (counter > 4) rightarrow.style.visibility = "hidden"
-            else rightarrow.style.visibility = "visible";
-        })
+    async function getMovies() {
+        const resp = await fetch(APIURL);
+        const respData = await resp.json();
 
-        async function getPosterPath(movie_id) {
-            return fetch(`/api/getPosterPath/${movie_id}`, {
-                method: "GET"
-            }).then(async (result) => {
-                return result.json();
-            })
-        }
+        console.log(respData);
 
-        async function getWatchlist(id) {
-            return fetch(`/api/getUserWatchlist/${id}`, {
-                method: "GET"
-            }).then(async (result) => {
-                return result.json();
-            })
-        }
+        respData.results.forEach(movie => {
+            const {
+                id,
+                poster_path,
+                title,
+                vote_average
+            } = movie;
 
+            const movieEl = document.createElement('div');
+            movieEl.classList.add('movie');
 
-        getWatchlist(
-            @if (session()->has('user'))
-                {{ session('user')->id }}
-            @else
-                -1
-            @endif
-        ).then(async (response) => {
-            let div = document.querySelector('#watchlist-div');
-            if (response.length == 0) {
-                let text = document.createElement('p');
-                @if (session()->has('user'))
-                    text.innerHTML = "Your watchlist is empty. Go to a movies page to add it to your watchlist";
-                @else
-                    text.innerHTML = "Login to access your watchlist"
-                @endif
+            movieEl.innerHTML = `
+                    <img
+                        src="${IMGPATH + poster_path}"
+                        alt="${title}"
+                    />
+                    <div class="movie-info">
+                        <h3>${title}</h3>
+                        <span>${vote_average}</span>
+                    </div>
+                `;
 
-                text.setAttribute('id', 'emptywatchlist')
-                div.appendChild(text);
-            }
-            for (let i = 0; i < 6; i++) {
-                let movie = document.createElement('img');
-                let a = document.createElement('a')
-                a.setAttribute('class', 'redposter')
-                if (i < response.length) {
-                    let posterpath = await getPosterPath(response[i].movie_id);
-                    movie.setAttribute('src', `https://image.tmdb.org/t/p/w500${posterpath.poster_path}`)
-                    a.setAttribute('href', `/movie/${response[i].movie_id}`)
-                } else {
-                    movie.style.visibility = 'hidden';
-                }
+            movieEl.addEventListener('click', () => {
+                window.location.href = `/movie/${id}`;
+            });
 
-                movie.setAttribute('class', 'poster')
-                a.appendChild(movie)
-                div.appendChild(a)
-            }
-        })
-
-        document.querySelector("#form").addEventListener("submit", (event) => {
-            event.preventDefault();
-            const input = document.querySelector("#input").value;
-            $.ajax({
-                url: 'api/test/' + input,
-                type: "GET",
-                success: (result) => {
-                    document.querySelector('#searchPoster').innerHTML +=
-                        `<img class="poster" src="https://image.tmdb.org/t/p/w500${result}">`
-                }
-            })
+            main.appendChild(movieEl);
         });
 
-        var posters = document.querySelectorAll(".redposter");
+        return respData;
+    }
 
-        posters.forEach((element, i) => {
-            element.addEventListener('click', (event) => {
-                window.location.href = '/movie/' + data[i + counter].id;
-            })
-        })
-    </script>
+    getMovies(); // initialization of movies
+
+    async function getPosterPath(movie_id) {
+        return fetch(`/api/getPosterPath/${movie_id}`, {
+            method: "GET"
+        }).then(async (result) => {
+            return result.json();
+        });
+    }
+
+    async function getWatchlist(id) {
+        return fetch(`/api/getUserWatchlist/${id}`, {
+            method: "GET"
+        }).then(async (result) => {
+            return result.json();
+        });
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+        const response = await getWatchlist(
+                @if (session()->has('user'))
+                    {{ session('user')->id }}
+                    @else
+                -1
+            @endif
+        );
+
+        const div = document.querySelector('#watchlist-div');
+        if (response.length === 0) {
+            const text = document.createElement('p');
+            text.innerHTML = @if (session()->has('user'))
+                "Your watchlist is empty. Go to a movies page to add it to your watchlist";
+            @else
+                "Login to access your watchlist";
+            @endif
+
+            text.setAttribute('id', 'emptywatchlist');
+            div.appendChild(text);
+        }
+
+        for (let i = 0; i < 6; i++) {
+            const movie = document.createElement('img');
+            const a = document.createElement('a');
+            a.setAttribute('class', 'redposter');
+            if (i < response.length) {
+                const posterpath = await getPosterPath(response[i].movie_id);
+                movie.setAttribute('src', `https://image.tmdb.org/t/p/w500${posterpath.poster_path}`);
+                a.setAttribute('href', `/movie/${response[i].movie_id}`);
+            } else {
+                movie.style.visibility = 'hidden';
+            }
+
+            movie.setAttribute('class', 'poster');
+            a.appendChild(movie);
+            div.appendChild(a);
+        }
+    });
+
+    document.querySelector("#form").addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const input = document.querySelector("#input").value;
+        const result = await $.ajax({
+            url: 'api/test/' + input,
+            type: "GET",
+        });
+
+        document.querySelector('#searchPoster').innerHTML +=
+            `<img class="poster" src="https://image.tmdb.org/t/p/w500${result}">`;
+    });
+</script>
 </body>
 
 </html>
-<style>
-    #image {
-        display: flex;
-    }
-
-    body {
-        background-color: #000;
-        color: white;
-        margin: 0;
-        padding: 0;
-        min-height: 100vh;
-        height: 100%;
-    }
-
-    h1 {
-        font-size: 26px;
-    }
-
-    #innerbody {
-        background-color: #111;
-        margin: auto;
-        min-height: inherit;
-        height: inherit;
-        padding: 0 2rem 10rem 2rem;
-        max-width: 75%;
-        display: flex;
-        flex-direction: column;
-    }
-
-    .poster {
-        width: 150px;
-        height: 225px;
-        padding: 1vh;
-        margin: 0 1rem 0 1rem;
-    }
-
-    .redposter {
-        background-color: #222;
-    }
-
-    #poster-div,
-    #watchlist-div {
-        display: flex;
-        place-content: center;
-    }
-
-    #title-div,
-    #watchlist-title {
-        margin-top: 2rem;
-        margin-left: 9rem;
-    }
-
-    #right-arrow {
-        display: flex;
-        place-self: center;
-    }
-
-    #left-arrow {
-        display: flex;
-        place-self: center;
-    }
-
-    #left-arrow,
-    #right-arrow {
-        border: none;
-        background: none;
-    }
-
-    .fa-solid {
-        color: white;
-    }
-
-    #right-arrow:hover,
-    #left-arrow:hover {
-        opacity: 0.8;
-    }
-
-    #emptywatchlist {
-        position: absolute;
-        margin-top: 7rem;
-    }
-</style>
