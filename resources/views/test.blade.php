@@ -60,7 +60,9 @@
             box-shadow: 0 4px 5px rgba(0, 0, 0, 0.2);
             width: 300px;
             margin: 1rem;
-            cursor: pointer; /* Add this to indicate clickable elements */
+            position: relative;
+            cursor: pointer;
+            overflow: hidden;
         }
 
         .movie img {
@@ -117,6 +119,25 @@
         #next-page:hover, #prev-page:hover {
             background-color: #6b2c80; /* Darken the color on hover */
         }
+
+        .overview {
+            background-color: white;
+            color: black;
+            padding: 2rem;
+            position: absolute;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            transform: translateY(100%);
+            transition: transform 0.3s ease-in;
+        }
+
+        .movie:hover .overview {
+            transform: translateY(0);
+        }
+        .overview h4 {
+            margin-top: 0;
+        }
     </style>
 </head>
 
@@ -133,7 +154,7 @@
     <main>
         <!-- Movies will be appended here -->
     </main>
-    <!-- Add buttons to load the next and previous pages -->
+    <!-- buttons to load the next and previous pages -->
     <button id="prev-page">Load Previous Page</button>
     <button id="next-page">Load Next Page</button>
     <h1 id="watchlist-title">Your Watchlist</h1>
@@ -158,7 +179,7 @@
         console.log(respData);
 
         respData.results.forEach((movie) => {
-            const { id, poster_path, title, vote_average } = movie;
+            const { id, poster_path, title, vote_average, overview } = movie;
 
             // Check if the movie already exists in the container
             const existingMovie = main.querySelector(`.movie[data-id="${id}"]`);
@@ -175,6 +196,10 @@
                     <div class="movie-info">
                         <h3>${title}</h3>
                         <span class="${getMoviesByRating(vote_average)}">${vote_average}</span>
+                    </div>
+                    <div class= "overview">
+                        <h4>Overview:</h4>
+                        ${overview}
                     </div>
                 `;
 
@@ -235,7 +260,7 @@
     async function loadPrevPage() {
         const prevPageButton = document.getElementById('prev-page');
         prevPageButton.addEventListener('click', async () => {
-            // Decrement the page counter
+            // Decrease the page counter
             currentPage--;
 
             // Clear existing movies before loading new ones
@@ -259,14 +284,14 @@
         await loadNextPage();
         await loadPrevPage();
 
-        const initialData = await getMovies(); // Initial load of movies
+        const initialData = await getMovies(); // Initial set of movies
 
         // Check if there are more pages to load
         if (currentPage >= initialData.total_pages) {
             document.getElementById('next-page').style.display = 'none'; // Hide the next button if no more pages
         }
 
-        // Hide the previous button initially (as we are on the first page)
+        // Hide the previous button
         document.getElementById('prev-page').style.display = 'none';
     });
 </script>
