@@ -84,6 +84,20 @@
             background-color: #222;
             border-radius: 3px;
             padding: 0.25rem 0.5rem;
+            font-weight: bold;
+        }
+
+        .movie-info span.green {
+            color: limegreen;
+        }
+
+        .movie-info span.orange {
+            color: orange;
+
+        }
+
+        .movie-info span.red {
+            color: red;
         }
     </style>
 </head>
@@ -137,7 +151,7 @@
                 />
                 <div class="movie-info">
                     <h3>${title}</h3>
-                    <span>${vote_average}</span>
+                    <span class="${getMoviesByRating(vote_average)}">${vote_average}</span>
                 </div>
             `;
 
@@ -149,6 +163,18 @@
         });
 
         return respData;
+    }
+
+    function getMoviesByRating(vote){
+        if (vote >= 8){
+            return "green";
+        }
+        else if (vote >= 6){
+            return "orange";
+        }
+        else{
+            return "red";
+        }
     }
 
     // method for loading the next set of movies via. pagination.
@@ -205,5 +231,4 @@
     });
 </script>
 </body>
-
 </html>
