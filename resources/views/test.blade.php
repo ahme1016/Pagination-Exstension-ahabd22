@@ -99,6 +99,25 @@
         .movie-info span.red {
             color: red;
         }
+
+        #next-page {
+            display: block;
+            margin: 20px auto; /* Adjust the margin as needed for spacing */
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: rebeccapurple;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+        }
+
+        #next-page:hover {
+            background-color: #6b2c80; /* Darken the color on hover */
+        }
+
+
     </style>
 </head>
 
