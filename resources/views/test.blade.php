@@ -100,7 +100,7 @@
             color: red;
         }
 
-        #next-page {
+        #next-page, #prev-page {
             display: block;
             margin: 20px auto; /* Adjust the margin as needed for spacing */
             padding: 10px 20px;
@@ -114,11 +114,9 @@
             font-weight: bold;
         }
 
-        #next-page:hover {
+        #next-page:hover, #prev-page:hover {
             background-color: #6b2c80; /* Darken the color on hover */
         }
-
-
     </style>
 </head>
 
@@ -135,7 +133,8 @@
     <main>
         <!-- Movies will be appended here -->
     </main>
-    <!-- Add a button to load the next page -->
+    <!-- Add buttons to load the next and previous pages -->
+    <button id="prev-page">Load Previous Page</button>
     <button id="next-page">Load Next Page</button>
     <h1 id="watchlist-title">Your Watchlist</h1>
     <div id="watchlist-div">
@@ -161,25 +160,30 @@
         respData.results.forEach((movie) => {
             const { id, poster_path, title, vote_average } = movie;
 
-            const movieEl = document.createElement('div');
-            movieEl.classList.add('movie');
+            // Check if the movie already exists in the container
+            const existingMovie = main.querySelector(`.movie[data-id="${id}"]`);
+            if (!existingMovie) {
+                const movieEl = document.createElement('div');
+                movieEl.classList.add('movie');
+                movieEl.setAttribute('data-id', id);
 
-            movieEl.innerHTML = `
-                <img
-                    src="${IMGPATH + poster_path}"
-                    alt="${title}"
-                />
-                <div class="movie-info">
-                    <h3>${title}</h3>
-                    <span class="${getMoviesByRating(vote_average)}">${vote_average}</span>
-                </div>
-            `;
+                movieEl.innerHTML = `
+                    <img
+                        src="${IMGPATH + poster_path}"
+                        alt="${title}"
+                    />
+                    <div class="movie-info">
+                        <h3>${title}</h3>
+                        <span class="${getMoviesByRating(vote_average)}">${vote_average}</span>
+                    </div>
+                `;
 
-            movieEl.addEventListener('click', () => {
-                window.location.href = `/movie/${id}`;
-            });
+                movieEl.addEventListener('click', () => {
+                    window.location.href = `/movie/${id}`;
+                });
 
-            main.appendChild(movieEl);
+                main.appendChild(movieEl);
+            }
         });
 
         return respData;
@@ -197,7 +201,12 @@
         }
     }
 
-    // method for loading the next set of movies via. pagination.
+    // Method to clear existing movies
+    function clearMovies() {
+        main.innerHTML = '';
+    }
+
+    // Method for loading the next set of movies via. pagination.
 
     async function loadNextPage() {
         const nextPageButton = document.getElementById('next-page');
@@ -205,49 +214,60 @@
             // Increment the page counter
             currentPage++;
 
+            // Clear existing movies before loading new ones
+            clearMovies();
+
             // Load the next page of movies
             const nextPageData = await getMovies();
 
-            // Append new movies to the main container
-            nextPageData.results.forEach((movie) => {
-                const { id, poster_path, title, vote_average } = movie;
-
-                const movieEl = document.createElement('div');
-                movieEl.classList.add('movie');
-
-                movieEl.innerHTML = `
-                    <img
-                        src="${IMGPATH + poster_path}"
-                        alt="${title}"
-                    />
-                    <div class="movie-info">
-                        <h3>${title}</h3>
-                        <span>${vote_average}</span>
-                    </div>
-                `;
-
-                movieEl.addEventListener('click', () => {
-                    window.location.href = `/movie/${id}`;
-                });
-
-                main.appendChild(movieEl);
-            });
-
             // Check if there are more pages to load
             if (currentPage >= nextPageData.total_pages) {
-                nextPageButton.style.display = 'none'; // Hide the button if no more pages
+                nextPageButton.style.display = 'none'; // Hide the next button if no more pages
             }
+
+            // Show the previous button once we are on the second page
+            document.getElementById('prev-page').style.display = 'block';
+        });
+    }
+
+    // Method for loading the previous set of movies via. pagination.
+
+    async function loadPrevPage() {
+        const prevPageButton = document.getElementById('prev-page');
+        prevPageButton.addEventListener('click', async () => {
+            // Decrement the page counter
+            currentPage--;
+
+            // Clear existing movies before loading new ones
+            clearMovies();
+
+            // Load the previous page of movies
+            const prevPageData = await getMovies();
+
+            // Check if there are more pages to load
+            if (currentPage <= 1) {
+                prevPageButton.style.display = 'none'; // Hide the previous button if no previous pages
+            }
+
+            // Show the next button once we are back to the first page
+            document.getElementById('next-page').style.display = 'block';
         });
     }
 
     document.addEventListener('DOMContentLoaded', async () => {
+        // Load both next and previous page buttons
         await loadNextPage();
+        await loadPrevPage();
+
         const initialData = await getMovies(); // Initial load of movies
 
         // Check if there are more pages to load
         if (currentPage >= initialData.total_pages) {
-            document.getElementById('next-page').style.display = 'none'; // Hide the button if no more pages
+            document.getElementById('next-page').style.display = 'none'; // Hide the next button if no more pages
         }
+
+        // Hide the previous button initially (as we are on the first page)
+        document.getElementById('prev-page').style.display = 'none';
     });
 </script>
 </body>
