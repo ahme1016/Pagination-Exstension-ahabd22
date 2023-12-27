@@ -4,13 +4,37 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Movie Website</title>
+    <title>My Movie Website</title>
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
     <script src="https://kit.fontawesome.com/d826f0fb4b.js" crossorigin="anonymous"></script>
     <style>
         /* Add your CSS styles here */
         * {
             box-sizing: border-box;
+        }
+
+        h1{
+            background: rebeccapurple;
+            margin: 0;
+            padding: 0;
+        }
+
+        #title-div {
+            text-align: center;
+            padding: 1rem;
+        }
+
+        #innerbody{
+            background: rebeccapurple;
+        }
+
+        header.search{
+            background: rebeccapurple;
+            width: auto;
+        }
+
+        div{
+            width: auto;
         }
 
         body {
@@ -20,11 +44,14 @@
             color: white;
             min-height: 100vh;
             height: 100%;
+            zoom: 80%;
         }
 
         main {
             display: flex;
             flex-wrap: wrap;
+            background: rebeccapurple;
+
         }
 
         .movie {
@@ -65,7 +92,7 @@
 @include('search')
 <div id="innerbody">
     <div id="title-div">
-        <h1>Movies with Rating</h1>
+        <h1>Movies</h1>
         @if (session()->has('user'))
             {{ session('user')->name }}
         @endif
@@ -85,6 +112,8 @@
     const IMGPATH = "https://image.tmdb.org/t/p/w500";
     const main = document.querySelector('main');
     let currentPage = 1;
+
+    // Method for fetching movies
 
     async function getMovies() {
         const resp = await fetch(
@@ -121,6 +150,8 @@
 
         return respData;
     }
+
+    // method for loading the next set of movies via. pagination.
 
     async function loadNextPage() {
         const nextPageButton = document.getElementById('next-page');
